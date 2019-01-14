@@ -1,132 +1,129 @@
 package Activity9;
 
+/**
+ * Created by Teacher on 1/7/2019.
+ */
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * The ElevensBoard class represents the board in a game of Elevens.
+ * The Deck class represents a shuffled deck of cards.
+ * It provides several operations including
+ *      initialize, shuffle, deal, and check if empty.
  */
-public class ElevensBoard extends Board {
+public class Deck {
 
     /**
-     * The size (number of cards) on the board.
+     * cards contains all the cards in the deck.
      */
-    private static final int BOARD_SIZE = 9;
+    private List<Card> cards;
 
     /**
-     * The ranks of the cards for this game to be sent to the deck.
+     * size is the number of not-yet-dealt cards.
+     * Cards are dealt from the top (highest index) down.
+     * The next card to be dealt is at size - 1.
      */
-    private static final String[] RANKS =
-            {"ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"};
-
-    /**
-     * The suits of the cards for this game to be sent to the deck.
-     */
-    private static final String[] SUITS =
-            {"spades", "hearts", "diamonds", "clubs"};
-
-    /**
-     * The values of the cards for this game to be sent to the deck.
-     */
-    private static final int[] POINT_VALUES =
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 0};
-
-    /**
-     * Flag used to control debugging print statements.
-     */
-    private static final boolean I_AM_DEBUGGING = false;
+    private int size;
 
 
     /**
-     * Creates a new <code>ElevensBoard</code> instance.
+     * Creates a new <code>Deck</code> instance.<BR>
+     * It pairs each element of ranks with each element of suits,
+     * and produces one of the corresponding card.
+     * @param ranks is an array containing all of the card ranks.
+     * @param suits is an array containing all of the card suits.
+     * @param values is an array containing all of the card point values.
      */
-    public ElevensBoard() {
-        super(BOARD_SIZE, RANKS, SUITS, POINT_VALUES);
+    public Deck(String[] ranks, String[] suits, int[] values) {
+        cards = new ArrayList<Card>();
+        for (int j = 0; j < ranks.length; j++) {
+            for (String suitString : suits) {
+                cards.add(new Card(ranks[j], suitString, values[j]));
+            }
+        }
+        size = cards.size();
+        shuffle();
+    }
+
+
+    /**
+     * Determines if this deck is empty (no undealt cards).
+     * @return true if this deck is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return size == 0;
     }
 
     /**
-     * Determines if the selected cards form a valid group for removal.
-     * In Elevens, the legal groups are (1) a pair of non-face cards
-     * whose values add to 11, and (2) a group of three cards consisting of
-     * a jack, a queen, and a king in some order.
-     * @param selectedCards the list of the indices of the selected cards.
-     * @return true if the selected cards form a valid group for removal;
-     *         false otherwise.
+     * Accesses the number of undealt cards in this deck.
+     * @return the number of undealt cards in this deck.
+     */
+    public int size() {
+        return size;
+    }
+
+    /**
+     * Randomly permute the given collection of cards
+     * and reset the size to represent the entire deck.
+     */
+    public void shuffle() {
+        for (int k = cards.size() - 1; k > 0; k--) {
+            int howMany = k + 1;
+            int start = 0;
+            int randPos = (int) (Math.random() * howMany) + start;
+            Card temp = cards.get(k);
+            cards.set(k, cards.get(randPos));
+            cards.set(randPos, temp);
+        }
+        size = cards.size();
+    }
+
+    /**
+     * Deals a card from this deck.
+     * @return the card just dealt, or null if all the cards have been
+     *         previously dealt.
+     */
+    public Card deal() {
+        if (isEmpty()) {
+            return null;
+        }
+        size--;
+        Card c = cards.get(size);
+        return c;
+    }
+
+    /**
+     * Generates and returns a string representation of this deck.
+     * @return a string representation of this deck.
      */
     @Override
-    public boolean isLegal(List<Integer> selectedCards) {
-        if(selectedCards.size() == 2)
-        {
+    public String toString() {
+        String reUse = "size = " + size + "\nUndealt cards: \n";
 
-            if(cardAt(selectedCards.get(0)).pointValue() == 0 || cardAt(selectedCards.get(1)).pointValue() == 0)
-            {
-                return false;
+        for (int k = size - 1; k >= 0; k--) {
+            reUse = reUse + cards.get(k);
+            if (k != 0) {
+                reUse = reUse + ", ";
             }
-            else
-            {
-                return cardAt(selectedCards.get(0)).pointValue() + cardAt(selectedCards.get(1)).pointValue() == 11;
+            if ((size - k) % 2 == 0) {
+                // Insert carriage returns so entire deck is visible on console.
+                reUse = reUse + "\n";
             }
         }
-        // your stupid test
-        //System.out.println(selectedCards);
-        //            System.out.println(selectedCards.get(0) + selectedCards.get(1) + selectedCards.get(2));
-        else if (selectedCards.size() == 3)
-        {
-            // initializes a list of ranks
-            List<String> ranks = new ArrayList<>();
-            for(int i = 0 ; i < selectedCards.size();i++){
-                ranks.add(cardAt(selectedCards.get(i)).rank());
+
+        reUse = reUse + "\nDealt cards: \n";
+        for (int k = cards.size() - 1; k >= size; k--) {
+            reUse = reUse + cards.get(k);
+            if (k != size) {
+                reUse = reUse + ", ";
             }
-            if(ranks.contains("jack") && ranks.contains("queen") && ranks.contains("king")){
-                return true;
+            if ((k - cards.size()) % 2 == 0) {
+                // Insert carriage returns so entire deck is visible on console.
+                reUse = reUse + "\n";
             }
         }
-        return false;
-    }
 
-    /**
-     * Determine if there are any legal plays left on the board.
-     * In Elevens, there is a legal play if the board contains
-     * (1) a pair of non-face cards whose values add to 11, or (2) a group
-     * of three cards consisting of a jack, a queen, and a king in some order.
-     * @return true if there is a legal play left on the board;
-     *         false otherwise.
-     */
-    @Override
-    public boolean anotherPlayIsPossible() {
-        return true;
-    }
-
-    /**
-     * Check for an 11-pair in the selected cards.
-     * @param selectedCards selects a subset of this board.  It is list
-     *                      of indexes into this board that are searched
-     *                      to find an 11-pair.
-     * @return true if the board entries in selectedCards
-     *              contain an 11-pair; false otherwise.
-     */
-    private boolean containsPairSum11(List<Integer> selectedCards) {
-        if(selectedCards.size() == 2) {
-            return selectedCards.get(0) + selectedCards.get(1) == 11;
-        }
-        else
-            return false;
-    }
-
-    /**
-     * Check for a JQK in the selected cards.
-     * @param selectedCards selects a subset of this board.  It is list
-     *                      of indexes into this board that are searched
-     *                      to find a JQK group.
-     * @return true if the board entries in selectedCards
-     *              include a jack, a queen, and a king; false otherwise.
-     */
-    private boolean containsJQK(List<Integer> selectedCards) {
-        if(selectedCards.size() == 3) {
-            if (selectedCards.get(0) == 0 || selectedCards.get(1) == 0 || selectedCards.get(2) == 0) {
-                return true;
-            }
-        }
-        return false;
+        reUse = reUse + "\n";
+        return reUse;
     }
 }
