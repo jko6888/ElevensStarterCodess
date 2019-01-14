@@ -395,4 +395,3 @@ public class CardGameGUI extends JFrame implements ActionListener {
         }
     }
 }
-
